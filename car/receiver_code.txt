@@ -1,0 +1,95 @@
+#include <SPI.h>
+#include <nRF24L01.h>
+#include <RF24.h>
+#include <Servo.h> 
+ 
+Servo serwomechanizm;  
+RF24 radio(7, 8); // CE, CSN
+
+const byte address[6] = "00001";
+
+struct Data_Package {
+   int prekoscSilnikow=0;
+   int skretSerwa=0;
+};
+
+  Data_Package data;
+void setup() {serwomechanizm.attach(9); 
+  Serial.begin(9600);
+  radio.begin();
+  radio.openReadingPipe(0, address);
+  radio.setPALevel(RF24_PA_MIN);
+  radio.startListening();
+}
+
+void loop() {
+  int skretrzeczywisty=95;
+          
+   //Serwomechanizm podłączony do pinu 9
+
+  if (radio.available()) {
+  
+    radio.read(&data, sizeof(Data_Package));
+    Serial.print("Predkosc silnikow: ");
+    Serial.print(data.prekoscSilnikow);
+    Serial.print(", Skret serwa: ");
+    Serial.println(data.skretSerwa);
+    int y=data.prekoscSilnikow;
+     int x= data.skretSerwa;
+     skretrzeczywisty=x/7;
+     if(skretrzeczywisty>10 && skretrzeczywisty<160)
+     {
+     serwomechanizm.write(skretrzeczywisty+5); 
+     }
+     if(y>530)
+{
+  digitalWrite(5, HIGH);
+  digitalWrite(6, LOW);
+  //ten tez tyl
+  digitalWrite(3, HIGH);
+  digitalWrite(2, LOW);
+
+  int Wtyl=y;
+  analogWrite(5, -330+Wtyl);
+  analogWrite(0, -330+Wtyl);
+//   Serial.print(" w tyl: ");
+//  Serial.println(Wtyl);
+   if(y>1000)
+  {
+      analogWrite(5, HIGH);
+   analogWrite(0, HIGH);
+  
+  }
+}
+if(510>y)
+{
+  digitalWrite(6, HIGH);
+  digitalWrite(5, LOW);
+  //ten tez tyl
+  digitalWrite(2, HIGH);
+  digitalWrite(3, LOW);
+ int wPrzod=y;
+
+  analogWrite(5, 400-wPrzod);
+   analogWrite(0, 400-wPrzod);
+//  Serial.print(" w Przo: ");
+  if(y<100)
+  {
+      analogWrite(5, HIGH);
+   analogWrite(0, HIGH);
+  
+  }
+  
+   Serial.println(500-wPrzod);
+}
+if (y >= 480 && y <= 560) {
+ digitalWrite(3, LOW);
+  digitalWrite(2, LOW);
+  digitalWrite(6, LOW);
+  digitalWrite(5, LOW);
+  analogWrite(5, 0);
+  analogWrite(0,0);
+}
+
+;
+}}
